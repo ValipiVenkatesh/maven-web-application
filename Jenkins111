@@ -1,0 +1,22 @@
+node{
+    def mavenHome= tool name: "maven3.8.5"
+    stage('checkoutcode'){
+        git 'https://github.com/ValipiVenkatesh/maven-web-application.git'
+    }
+    stage("build stage"){
+        sh  "$mavenHome/bin/mvn clean package"
+        
+    }
+    stage("SonarQube Stage"){
+        sh "$mavenHome/bin/mvn sonar:sonar"
+    }
+    stage("ArtifactIntoNexus"){
+        sh "$mavenHome/bin/mvn deploy"
+    }
+    stage("DeployApplicationIntoTomcat"){
+        sshagent(['b4c9bce6-bffb-43a1-af58-3ad19226b175']) {
+            sh "scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/Pipelinejob/target/maven-web-application.war ec2-user@15.206.68.188:/opt/apache-tomcat-9.0.82/webapps"
+        }
+        
+    }
+}
