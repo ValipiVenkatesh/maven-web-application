@@ -10,15 +10,6 @@ node{
     stage('checkoutcode'){
         git 'https://github.com/ValipiVenkatesh/maven-web-application.git'
     }
-    stage("build stage"){
-        sh  "$mavenHome/bin/mvn clean package"
-        
-    }
-    stage("SonarQube Stage"){
-        sh "$mavenHome/bin/mvn sonar:sonar"
-    }
-    stage("ArtifactIntoNexus"){
-        sh "$mavenHome/bin/mvn deploy"
-    }
+   
    
 }
