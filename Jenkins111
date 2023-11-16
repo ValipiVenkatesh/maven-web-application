@@ -4,10 +4,11 @@ node{
    /*
     buildName 'Dev - ${BUILD_NUMBER}'
     buildDescription 'Pipeline Script - Scriptedway'
-    */
+    
     echo " the Node name is : ${env.NODE_NAME} "
     echo " the Job name is : ${env.JOB_NAME} "
     echo " the Build number is : ${env.BUILD_NUMBER} "
+*/
 
      stage('checkoutcode'){
         git 'https://github.com/ValipiVenkatesh/maven-web-application.git'
