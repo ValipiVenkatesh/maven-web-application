@@ -1,43 +1,34 @@
-pipeline {
-    agent any
-    tools{
-        maven "maven3.8.5"
+node{
+    def mavenHome= tool name: "maven3.8.5"
+
+/*
+
+    buildName 'Dev - ${BUILD_NUMBER}'
+    buildDescription 'Pipeline Script-Scriptedway'
+
+*/
+    echo " the Node name is : ${env.NODE_NAME} "
+    echo " the Job name is : ${env.JOB_NAME} "
+    echo " the Build number is : ${env.BUILD_NUMBER} "
+
+    stage('checkoutcode'){
+        git 'https://github.com/ValipiVenkatesh/maven-web-application.git'
+    }
+    stage("build stage"){
+        sh  "$mavenHome/bin/mvn clean package"
         
     }
-    options {
-    	buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '2', daysToKeepStr: '', numToKeepStr: '2')
-  	timestamps()
-   }
-
- 
-
-    stages {
-        stage('CodeCheckOut') {
-            steps {
-                git 'https://github.com/ValipiVenkatesh/maven-web-application.git'
-            }
-        }
-        stage('Build'){
-            steps{
-                sh "mvn clean package"
-            }
-        }
-        stage("SonarQube Stage"){
-            steps{
-                sh "mvn sonar:sonar"
-            }
-        }
-        stage("ArtifactIntoNexus"){
-            steps{
-                sh"mvn deploy"
-            }
-        }
-        stage("WebAppIntoTomcat"){
-            steps{
-                sshagent(['b4c9bce6-bffb-43a1-af58-3ad19226b175']) {
-                    sh "scp -o  StrictHostKeyChecking=no /var/lib/jenkins/workspace/Multibranch-job/target/maven-web-application.war ec2-user@15.206.68.188:/opt/apache-tomcat-9.0.82/webapps"
-                }
-            }
-        }
+    stage("SonarQube Stage"){
+        sh "$mavenHome/bin/mvn sonar:sonar"
     }
-}    
+    stage("ArtifactIntoNexus"){
+        sh "$mavenHome/bin/mvn deploy"
+    }
+    stage("DeployApplicationIntoTomcat"){
+        sshagent(['586b407b-d0dd-4a89-9807-1ccec193fb40']) {
+            sh "scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/Pipelinejob/target/maven-web-application.war ec2-user@15.206.68.188:/opt/apache-tomcat-9.0.82/webapps"
+        }
+        
+    }
+}
+
