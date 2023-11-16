@@ -1,23 +1,43 @@
-node{
-    def mavenHome= tool name: "maven3.8.5"
-     stage('checkoutcode'){
-        git 'https://github.com/ValipiVenkatesh/maven-web-application.git'
-    }
-    stage("build stage"){
-        sh  "$mavenHome/bin/mvn clean package"
+pipeline {
+    agent any
+    tools{
+        maven "maven3.8.5"
         
     }
-    stage("SonarQube Stage"){
-        sh "$mavenHome/bin/mvn sonar:sonar"
-    }
-    stage("ArtifactIntoNexus"){
-        sh "$mavenHome/bin/mvn deploy"
-    }
-    stage("DeployApplicationIntoTomcat"){
-        sshagent(['586b407b-d0dd-4a89-9807-1ccec193fb40']) {
-            sh "scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/Scripted-way/target/maven-web-application.war ec2-user@15.206.68.188:/opt/apache-tomcat-9.0.82/webapps"
+    options {
+    	buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '2', daysToKeepStr: '', numToKeepStr: '2')
+  	timestamps()
+   }
+
+ 
+
+    stages {
+        stage('CodeCheckOut') {
+            steps {
+                git 'https://github.com/ValipiVenkatesh/maven-web-application.git'
+            }
         }
-        
-    }
+        stage('Build'){
+            steps{
+                sh "mvn clean package"
+            }
+        }
+        stage("SonarQube Stage"){
+            steps{
+                sh "mvn sonar:sonar"
+            }
+        }
+        stage("ArtifactIntoNexus"){
+            steps{
+                sh"mvn deploy"
+            }
+        }
+        stage("WebAppIntoTomcat"){
+            steps{
+                sshagent(['b4c9bce6-bffb-43a1-af58-3ad19226b175']) {
+                    sh "scp -o  StrictHostKeyChecking=no /var/lib/jenkins/workspace/Multibranch-job/target/maven-web-application.war ec2-user@15.206.68.188:/opt/apache-tomcat-9.0.82/webapps"
+                }
+            }
+        }
 }
         
